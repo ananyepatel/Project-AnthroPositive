@@ -71,6 +71,8 @@ img_count = 0
 
 sum_human = 0
 sum_not = 0
+fp_img_names = []
+fn_img_names = []
 
 for img in images:
     # the input to the network is of shape [None, image_size, image_size, num_channels], so we reshape
@@ -90,31 +92,33 @@ for img in images:
     # assumes test data is named appropriately (eg. person007.jpg, notperson069.jpg etc)
     if (img_names[img_count].startswith('person')):
         label = 0
-        sum_human += sys_pred
     else:
         label = 1
-        sum_not += sys_pred
-    img_count += 1
+
     np.set_printoptions(precision=5, suppress=True)
     print('P(Human) = ' + str(sys_pred))
+    print(img_names[img_count])
     print('Image label: ' + str(label) + '\n')
     # human: 0, nothuman: 1
     if (sys_pred > threshold):
-        res = 0
+        outcome = 0
         if label == 0:
             reality = 'TP'
             TP += 1
         elif label == 1:
             reality = 'FP'
             FP += 1
+            fp_img_names.append(img_names[img_count])
     else:
-        res = 1
+        outcome = 1
         if label == 1:
             reality = 'TN'
             TN += 1
         elif label == 0:
             reality = 'FN'
             FN += 1
+            fn_img_names.append(img_names[img_count])
+    img_count += 1
 
 
 print('True Positives = ' + str(TP))
@@ -130,9 +134,13 @@ accuracy = (TP + TN) / (TP + FP + TN + FN)
 precision = TP / (TP + FP)
 recall = TP / (TP + FN)
 f1 = (2 * precision * recall) / (precision + recall)
-print('accuracy = ' + str(accuracy*100))
-print('precision = ' + str(precision*100))
-print('recall = ' + str(recall*100))
-print('f1 = ' + str(f1*100))
-# print('avg probability(actually human) = ' + str(avg_human_prob) + ' -> choose as classification threshold')
+print('accuracy = ' + str(accuracy*100) + '% of images correctly identified by model')
+print('precision = ' + str(precision*100) + '% of positively identified images (human) that are actually correct')
+print('recall = ' + str(recall*100) + '% of actual positives (human images) identified correctly')
+print('f1 score = ' + str(f1*100) + ' : weighted average of precision and recall')
+# print('avg probability(actually human) = ' + str(avg_human_prob) + ' -> choose as rough classification threshold')
 # print('avg not human prob = ' + str(avg_not_prob))
+print('\nList of False Positive Images')
+print(fp_img_names)
+print('List of False Negative Images')
+print(fn_img_names)
