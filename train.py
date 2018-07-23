@@ -200,16 +200,4 @@ def train(num_iteration):
     train_writer.close()
     valid_writer.close()
 
-train(num_iteration=2670)
-
-
-
-
-
-
-
-
-
-
-
-
+train(num_iteration=2666)
