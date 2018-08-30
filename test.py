@@ -1,3 +1,4 @@
+# Developed by Ananye Patel. 2018-07-30.
 import tensorflow as tf
 import numpy as np
 import os
@@ -29,7 +30,7 @@ for fields in classes:
     files = glob.glob(path)
     for fl in files:
             image = cv.imread(fl)
-            image = cv.resize(image, (image_size, image_size),0,0, cv.INTER_LINEAR)
+            image = cv.resize(image, (image_size, image_size), 0, 0, cv.INTER_LINEAR)
             image = image.astype(np.float32)
             image = np.multiply(image, 1.0/255.0)
             images.append(image)
@@ -46,7 +47,7 @@ images, img_names = shuffle(images, img_names)
 print('Shuffling the input data \n')
 # print(img_names)
 
-# lets restore the saved model
+# we restore the saved model
 sess = tf.Session()
 # Step 1: recreate the network graph (only graph is created at this step)
 saver = tf.train.import_meta_graph('human-detection-model.meta')
@@ -65,12 +66,11 @@ FP = 0
 TN = 0
 FN = 0
 # classification threshold (converts probability to binary output)
-threshold = 80.0
+threshold = 70.0
 # image iterator
 img_count = 0
 
-sum_human = 0
-sum_not = 0
+# falsely identified images
 fp_img_names = []
 fn_img_names = []
 
@@ -87,7 +87,7 @@ for img in images:
     result = sess.run(y_pred, feed_dict=feed_dict_testing)
     # result is of format [probability(human) probability(not_human)]
     result = result*100
-    sys_pred = result[0][0]
+    sys_pred = result[0][0] #prob(human)
 
     # assumes test data is named appropriately (eg. person007.jpg, notperson069.jpg etc)
     if (img_names[img_count].startswith('person')):
@@ -103,19 +103,15 @@ for img in images:
     if (sys_pred > threshold):
         outcome = 0
         if label == 0:
-            reality = 'TP'
             TP += 1
         elif label == 1:
-            reality = 'FP'
             FP += 1
             fp_img_names.append(img_names[img_count])
     else:
         outcome = 1
         if label == 1:
-            reality = 'TN'
             TN += 1
         elif label == 0:
-            reality = 'FN'
             FN += 1
             fn_img_names.append(img_names[img_count])
     img_count += 1
@@ -127,9 +123,6 @@ print('True Negatives = ' + str(TN))
 print('False Negatives = ' + str(FN))
 print('\n')
 
-avg_human_prob = sum_human / 288.0
-avg_not_prob = sum_not / 300.0
-
 accuracy = (TP + TN) / (TP + FP + TN + FN)
 precision = TP / (TP + FP)
 recall = TP / (TP + FN)
@@ -138,9 +131,7 @@ print('accuracy = ' + str(accuracy*100) + '% of images correctly identified by m
 print('precision = ' + str(precision*100) + '% of positively identified images (human) that are actually correct')
 print('recall = ' + str(recall*100) + '% of actual positives (human images) identified correctly')
 print('f1 score = ' + str(f1*100) + ' : weighted average of precision and recall')
-# print('avg probability(actually human) = ' + str(avg_human_prob) + ' -> choose as rough classification threshold')
-# print('avg not human prob = ' + str(avg_not_prob))
-print('\nList of False Positive Images')
+print('\nList of False Positive Images:')
 print(fp_img_names)
-print('List of False Negative Images')
+print('List of False Negative Images:')
 print(fn_img_names)
