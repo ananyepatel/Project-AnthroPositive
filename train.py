@@ -1,3 +1,4 @@
+# Developed by Ananye Patel. 2018-07-30.
 import dataset
 import tensorflow as tf
 import time
@@ -6,6 +7,9 @@ import math
 import random
 import numpy as np
 import os
+
+'''from sklearn.model_selection import GridSearchCV
+ implement grid search hyperparameter optimization on model'''
 
 # adding seed so that random initialization is consistent
 from numpy.random import seed
@@ -16,7 +20,7 @@ set_random_seed(2)
 FLAGS=None
 beta = 0.01
 
-batch_size = 11
+batch_size = 64
 
 # preparing input data
 classes = ['human', 'nothuman']
@@ -43,6 +47,7 @@ x = tf.placeholder(tf.float32, shape=[None, img_size, img_size, num_channels], n
 y_true = tf.placeholder(tf.float32, shape=[None, num_classes], name='y_true')
 y_true_cls = tf.argmax(y_true, axis=1)
 
+# to implement regularization
 # keep_prob = tf.placeholder(tf.float32, shape=[None, img_size, img_size, num_channels], name='keep_prob')
 
 # Network graph parameters
@@ -143,7 +148,7 @@ with tf.name_scope('cost'):
         # cost = tf.reduce_mean(cost + beta * regularizer)
 tf.summary.scalar('cost', cost)
 
-optimizer = tf.train.AdamOptimizer(learning_rate=2e-4).minimize(cost)
+optimizer = tf.train.AdamOptimizer(learning_rate=5e-5).minimize(cost)
 
 with tf.name_scope('accuracy'):
     with tf.name_scope('correct_prediction'):
@@ -153,8 +158,8 @@ with tf.name_scope('accuracy'):
 tf.summary.scalar('accuracy', accuracy)
 
 merged = tf.summary.merge_all()
-train_writer = tf.summary.FileWriter('/home/ananye/PycharmProjects/mark1/summaries/train', session.graph)
-valid_writer = tf.summary.FileWriter('/home/ananye/PycharmProjects/mark1/summaries/valid', session.graph)
+train_writer = tf.summary.FileWriter('/home/ananye/PycharmProjects/AnthroPositive/summaries/train', session.graph)
+valid_writer = tf.summary.FileWriter('/home/ananye/PycharmProjects/AnthroPositive/summaries/valid', session.graph)
 
 session.run(tf.global_variables_initializer())
 
@@ -194,10 +199,10 @@ def train(num_iteration):
             train_writer.add_summary(summary, i)
 
             show_progress(epoch, feed_dict_tr, feed_dict_val, val_loss)
-            saver.save(session, '/home/ananye/PycharmProjects/mark1/human-detection-model')
+            saver.save(session, '/home/ananye/PycharmProjects/AnthroPositive/human-detection-model')
 
         total_iterations += num_iteration
     train_writer.close()
     valid_writer.close()
 
-train(num_iteration=2666)
+train(num_iteration=3000)
